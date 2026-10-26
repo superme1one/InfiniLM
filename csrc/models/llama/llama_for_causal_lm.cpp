@@ -1,3 +1,5 @@
+#include "last_logits_scope.hpp"
+#include "../profiler.hpp"
 #include "llama_for_causal_lm.hpp"
 #include "infinicore/context/context.hpp"
 #include "infinicore/nn/linear.hpp"
@@ -39,7 +41,12 @@ LlamaForCausalLM::Output LlamaForCausalLM::forward(const Input &input) const {
         input_ids, position_ids, past_sequence_lengths, total_sequence_length, input_offsets, block_tables, slot_mapping);
 
     // 2. Apply language modeling head to get logits
-    auto logits = lm_head_->forward(hidden_states);
+    auto logits = [&]() {
+        const auto phase = infinilm::profile::phase_from_tensor(hidden_states);
+        // This model wrapper does not store a rank; -1 means unspecified, not rank zero.
+        INFINILM_PROFILE_SCOPE(phase, -1, -1, "model_lm_head", hidden_states);
+        return iv_last_logits::project(lm_head_, hidden_states);
+    }();
 
     return {logits};
 }

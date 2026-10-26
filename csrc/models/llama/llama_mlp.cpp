@@ -1,15 +1,17 @@
 #include "llama_mlp.hpp"
 #include "infinicore/nn/linear.hpp"
 #include "infinicore/ops.hpp"
+#include "../profiler.hpp"
 
 namespace infinilm::models::llama {
 
 LlamaMLP::LlamaMLP(const LlamaConfig &config,
                    const infinicore::Device &device,
+                   size_t layer_idx,
                    engine::distributed::RankInfo rank_info)
     : hidden_size_(config.hidden_size),
       intermediate_size_(config.intermediate_size),
-      use_bias_(config.mlp_bias), rank_info_(rank_info) {
+      use_bias_(config.mlp_bias), rank_info_(rank_info), layer_idx_(layer_idx) {
     const auto &dtype{config.dtype};
 
     int tp_rank = rank_info.tp_rank;
@@ -23,17 +25,29 @@ LlamaMLP::LlamaMLP(const LlamaConfig &config,
 }
 
 infinicore::Tensor LlamaMLP::forward(const infinicore::Tensor &hidden_states) const {
+    const auto phase = infinilm::profile::phase_from_tensor(hidden_states);
+    INFINILM_PROFILE_SCOPE(phase, static_cast<long>(layer_idx_), rank_info_.tp_rank, "mlp_total", hidden_states);
+
     // 1. Project to gate and up
     auto hidden_states_mutable = hidden_states;
-    auto [gate, up] = gate_up_proj_->forward_split(hidden_states_mutable);
+    auto [gate, up] = [&]() {
+        INFINILM_PROFILE_SCOPE(phase, static_cast<long>(layer_idx_), rank_info_.tp_rank, "mlp_gate_up_proj", hidden_states);
+        return gate_up_proj_->forward_split(hidden_states_mutable);
+    }();
 
     // 2. Apply SwiGLU: silu(gate) * up
     // Note: swiglu kernel expects (up, gate) and computes gate * sigmoid(gate) * up
     // So we pass (up, gate) to get the correct result: gate * sigmoid(gate) * up
-    auto intermediate = infinicore::op::swiglu(up, gate);
+    auto intermediate = [&]() {
+        INFINILM_PROFILE_SCOPE(phase, static_cast<long>(layer_idx_), rank_info_.tp_rank, "mlp_swiglu", up);
+        return infinicore::op::swiglu(up, gate);
+    }();
 
     // 3. Project down
-    auto output = down_proj_->forward(intermediate);
+    auto output = [&]() {
+        INFINILM_PROFILE_SCOPE(phase, static_cast<long>(layer_idx_), rank_info_.tp_rank, "mlp_down_proj", intermediate);
+        return down_proj_->forward(intermediate);
+    }();
 
     return output;
 }

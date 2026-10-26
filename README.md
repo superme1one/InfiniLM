@@ -1,5 +1,9 @@
 # InfiniLM
 
+本分支保存 TG-V200 上已验证的完整 R5 优化组合。构建方式、优化内容和实测结果见
+[R5 说明](optimizations/r5/README.md)。该组合使用项目实际验证的旧版 InfiniCore API；
+请使用 R5 专用构建入口，默认 xmake 命令不包含这些支持库。向当前官方 main 的迁移仍需完成。
+
 本项目是基于 [`InfiniCore`](https://github.com/InfiniTensor/InfiniCore) 的推理引擎。
 
 ## 使用方式

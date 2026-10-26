@@ -12,6 +12,7 @@
 #include <numeric>
 #include <stdexcept>
 #include <utility>
+#include <vector>
 
 #include <spdlog/spdlog.h>
 
@@ -63,6 +64,10 @@ public:
            const infinicore::Tensor &v,
            const infinicore::Tensor &past_sequence_lengths);
 
+    bool has_v_decode_layout(size_t layer_idx) const;
+    size_t v_decode_layout_page_size() const;
+    infinicore::Tensor get_v_decode_layout(size_t layer_idx) const;
+
     ~StaticKVCache() override = default;
 
 private:
@@ -80,6 +85,14 @@ private:
 
     // [num_layers, max_batch, num_rank_v_heads, max_cache_len, v_dim]
     infinicore::Tensor v_caches_;
+
+    // In decode-layout mode each layer starts token-major for prefill, then is
+    // transposed in place to [batch, head, page, dim, token_in_page].
+    bool v_decode_layout_enabled_ = false;
+    size_t v_decode_layout_page_size_ = 0;
+    size_t v_decode_layout_num_pages_ = 0;
+    size_t v_decode_layout_storage_len_ = 0;
+    std::vector<bool> v_decode_layout_ready_;
 };
 
 class PagedKVCacheConfig final : public CacheConfig {

@@ -58,6 +58,16 @@ public:
     /**
      * @brief Get the layer index
      */
+    std::pair<infinicore::Tensor, infinicore::Tensor> forward_deferred(
+        const infinicore::Tensor &hidden_states, const infinicore::Tensor &position_ids,
+        std::shared_ptr<infinilm::cache::Cache> kv_cache,
+        std::optional<infinicore::Tensor> past_sequence_lengths,
+        std::optional<infinicore::Tensor> total_sequence_lengths,
+        std::optional<infinicore::Tensor> input_offsets,
+        std::optional<infinicore::Tensor> block_tables,
+        std::optional<infinicore::Tensor> slot_mapping,
+        std::optional<infinicore::Tensor> pending_residual) const;
+
     size_t layer_idx() const { return layer_idx_; }
 
     void set_rotary_emb(const std::shared_ptr<infinicore::nn::RoPE> &rotary_emb) {

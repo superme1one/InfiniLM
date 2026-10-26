@@ -1,0 +1,4 @@
+{
+  global: *;
+  local: *6spdlog*; *3fmt*;
+};

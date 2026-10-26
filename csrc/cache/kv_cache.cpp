@@ -2,7 +2,183 @@
 
 #include "../utils.hpp"
 #include "infinicore/ops.hpp"
+#include <dlfcn.h>
+#include <cstring>
 #include <stdexcept>
+#include <cstdlib>
+#include <iostream>
+#include <string>
+
+namespace {
+
+#ifndef INFINILM_V_CACHE_DECODE_LAYOUT_PATCH
+#define INFINILM_V_CACHE_DECODE_LAYOUT_PATCH 1
+#endif
+#ifndef INFINILM_V_CACHE_DECODE_LAYOUT_SINGLE_STORAGE
+#define INFINILM_V_CACHE_DECODE_LAYOUT_SINGLE_STORAGE 1
+#endif
+#ifndef INFINILM_V_CACHE_DECODE_LAYOUT_INPLACE_TRANSPOSE
+#define INFINILM_V_CACHE_DECODE_LAYOUT_INPLACE_TRANSPOSE 1
+#endif
+#ifndef INFINILM_V_CACHE_DECODE_LAYOUT_PADDED_STORAGE
+#define INFINILM_V_CACHE_DECODE_LAYOUT_PADDED_STORAGE 1
+#endif
+
+#ifndef INFINILM_V_CACHE_DECODE_LAYOUT_LAYER_FALLBACK
+#define INFINILM_V_CACHE_DECODE_LAYOUT_LAYER_FALLBACK 1
+#endif
+
+bool infiniLmVCacheDecodeLayoutLayerFallsBack(size_t layer_idx) {
+    const char *spec =
+        std::getenv("INFINILM_V_CACHE_DECODE_LAYOUT_FALLBACK_LAYERS");
+    if (spec == nullptr || spec[0] == '\0') {
+        return false;
+    }
+
+    const char *cursor = spec;
+    while (*cursor != '\0') {
+        while (*cursor == ' ' || *cursor == ',') {
+            ++cursor;
+        }
+        if (*cursor == '\0') {
+            break;
+        }
+
+        char *start_end = nullptr;
+        const size_t start = static_cast<size_t>(
+            std::strtoull(cursor, &start_end, 10));
+        if (start_end == cursor) {
+            while (*cursor != '\0' && *cursor != ',') {
+                ++cursor;
+            }
+            continue;
+        }
+
+        size_t stop = start;
+        cursor = start_end;
+        if (*cursor == '-') {
+            ++cursor;
+            char *stop_end = nullptr;
+            const size_t parsed_stop = static_cast<size_t>(
+                std::strtoull(cursor, &stop_end, 10));
+            if (stop_end != cursor) {
+                stop = parsed_stop;
+                cursor = stop_end;
+            }
+        }
+        size_t lower = start;
+        size_t upper = stop;
+        if (upper < lower) {
+            const size_t swap = lower;
+            lower = upper;
+            upper = swap;
+        }
+        if (layer_idx >= lower && layer_idx <= upper) {
+            return true;
+        }
+
+        while (*cursor != '\0' && *cursor != ',') {
+            ++cursor;
+        }
+    }
+    return false;
+}
+
+bool infiniLmVCacheDecodeLayoutModeSupported(const char *mode) {
+    return mode != nullptr &&
+        (std::strcmp(mode, "page16_fp32_forward") == 0 ||
+         std::strcmp(mode, "page16_fp32_warp") == 0 ||
+         std::strcmp(mode, "page32_fp32_forward") == 0 ||
+         std::strcmp(mode, "page16_fp32_reverse") == 0 ||
+         std::strcmp(mode, "page32_fp32_reverse") == 0 ||
+         std::strcmp(mode, "page16_bf16_forward") == 0 ||
+         std::strcmp(mode, "page32_bf16_forward") == 0);
+}
+
+const char *infiniLmVCacheDecodeLayoutMode() {
+    const char *mode = std::getenv("INFINILM_V_CACHE_DECODE_LAYOUT");
+    return infiniLmVCacheDecodeLayoutModeSupported(mode) ? mode : nullptr;
+}
+
+size_t infiniLmVCacheDecodeLayoutPageSize() {
+    const char *mode = infiniLmVCacheDecodeLayoutMode();
+    return mode != nullptr && std::strncmp(mode, "page32_", 7) == 0 ? 32 : 16;
+}
+
+using InfiniLmVCacheDecodeLayoutUpdateFn = int (*)(
+    void *,
+    const void *,
+    size_t,
+    size_t,
+    size_t,
+    size_t,
+    size_t,
+    size_t,
+    size_t,
+    ptrdiff_t,
+    ptrdiff_t,
+    ptrdiff_t,
+    ptrdiff_t);
+
+InfiniLmVCacheDecodeLayoutUpdateFn
+infiniLmResolveVCacheDecodeLayoutUpdate() {
+    constexpr const char *symbol = "infiniopVCacheDecodeLayoutUpdateBf16";
+    static auto fn = reinterpret_cast<InfiniLmVCacheDecodeLayoutUpdateFn>(
+        dlsym(RTLD_DEFAULT, symbol));
+    if (fn == nullptr) {
+        if (auto *handle = dlopen("libinfiniop.so", RTLD_LAZY | RTLD_GLOBAL)) {
+            fn = reinterpret_cast<InfiniLmVCacheDecodeLayoutUpdateFn>(
+                dlsym(handle, symbol));
+        }
+    }
+    return fn;
+}
+
+using InfiniLmVCacheDecodeLayoutTransposeFn = int (*)(
+    void *,
+    size_t,
+    size_t,
+    size_t,
+    size_t,
+    size_t,
+    size_t);
+
+InfiniLmVCacheDecodeLayoutTransposeFn
+infiniLmResolveVCacheDecodeLayoutTranspose() {
+    constexpr const char *symbol =
+        "infiniopVCacheDecodeLayoutTransposeInPlaceBf16";
+    static auto fn = reinterpret_cast<InfiniLmVCacheDecodeLayoutTransposeFn>(
+        dlsym(RTLD_DEFAULT, symbol));
+    if (fn == nullptr) {
+        if (auto *handle = dlopen("libinfiniop.so", RTLD_LAZY | RTLD_GLOBAL)) {
+            fn = reinterpret_cast<InfiniLmVCacheDecodeLayoutTransposeFn>(
+                dlsym(handle, symbol));
+        }
+    }
+    return fn;
+}
+
+size_t infiniLmKvPadAlign() {
+    const char *env = std::getenv("INFINILM_KV_PAD_ALIGN");
+    if (env == nullptr || env[0] == '\0') {
+        return 0;
+    }
+    try {
+        return static_cast<size_t>(std::stoull(env));
+    } catch (...) {
+        return 0;
+    }
+}
+
+size_t alignUp(size_t value, size_t align) {
+    return align == 0 ? value : ((value + align - 1) / align) * align;
+}
+
+bool infiniLmKvPadDebug() {
+    const char *env = std::getenv("INFINILM_KV_PAD_DEBUG");
+    return env != nullptr && env[0] != '\0' && env[0] != '0';
+}
+} // namespace
 
 namespace infinilm::cache {
 // ==========================
@@ -55,25 +231,60 @@ StaticKVCache::StaticKVCache(
       rank_num_layers_(num_layers),
       dtype_(dtype) {
 
-    // Allocate K cache
-    k_caches_ = infinicore::Tensor::empty(
-        {rank_num_layers_,
-         rank_batch_size_,
-         num_rank_k_heads_,
-         cache_len_,
-         k_dim_},
-        dtype_,
-        rank_info.device);
+    const char *decode_layout_mode =
+        infiniLmVCacheDecodeLayoutMode();
+    v_decode_layout_storage_len_ = cache_len_;
+    if (decode_layout_mode != nullptr &&
+        dtype_ == infinicore::DataType::BF16) {
+        v_decode_layout_enabled_ = true;
+        v_decode_layout_page_size_ = infiniLmVCacheDecodeLayoutPageSize();
+        v_decode_layout_storage_len_ =
+            ((cache_len_ + v_decode_layout_page_size_ - 1) /
+             v_decode_layout_page_size_) *
+            v_decode_layout_page_size_;
+        v_decode_layout_num_pages_ =
+            v_decode_layout_storage_len_ /
+            v_decode_layout_page_size_;
+        v_decode_layout_ready_.assign(rank_num_layers_, false);
+    }
 
-    // Allocate V cache
-    v_caches_ = infinicore::Tensor::empty(
-        {rank_num_layers_,
-         rank_batch_size_,
-         num_rank_v_heads_,
-         cache_len_,
-         v_dim_},
-        dtype_,
-        rank_info.device);
+    // Allocate K/V cache. When KV padding experiments are enabled, use zeros so
+    // unread padded rows are deterministic.
+    if (infiniLmKvPadAlign() > 1) {
+        k_caches_ = infinicore::Tensor::zeros(
+            {rank_num_layers_,
+             rank_batch_size_,
+             num_rank_k_heads_,
+             cache_len_,
+             k_dim_},
+            dtype_,
+            rank_info.device);
+        v_caches_ = infinicore::Tensor::zeros(
+            {rank_num_layers_,
+             rank_batch_size_,
+             num_rank_v_heads_,
+             v_decode_layout_storage_len_,
+             v_dim_},
+            dtype_,
+            rank_info.device);
+    } else {
+        k_caches_ = infinicore::Tensor::empty(
+            {rank_num_layers_,
+             rank_batch_size_,
+             num_rank_k_heads_,
+             cache_len_,
+             k_dim_},
+            dtype_,
+            rank_info.device);
+        v_caches_ = infinicore::Tensor::empty(
+            {rank_num_layers_,
+             rank_batch_size_,
+             num_rank_v_heads_,
+             v_decode_layout_storage_len_,
+             v_dim_},
+            dtype_,
+            rank_info.device);
+    }
 }
 
 std::tuple<infinicore::Tensor, infinicore::Tensor>
@@ -96,15 +307,117 @@ StaticKVCache::update(size_t layer_idx,
     auto v_cache_layer = v_caches_->narrow({{0, layer_idx, 1}})->squeeze(0);
 
     auto k_cache_update = k_cache_layer->narrow({{2, cache_pos, update_len}});
-    auto v_cache_update = v_cache_layer->narrow({{2, cache_pos, update_len}});
-
     k_cache_update->copy_from(k);
-    v_cache_update->copy_from(v);
 
-    auto k_total = k_cache_layer->narrow({{2, 0, result_len}});
-    auto v_total = v_cache_layer->narrow({{2, 0, result_len}});
+    if (v_decode_layout_enabled_ &&
+        !infiniLmVCacheDecodeLayoutLayerFallsBack(layer_idx)) {
+        if (!v_decode_layout_ready_[layer_idx] &&
+            update_len == 1 && cache_pos > 0) {
+            auto transpose_fn =
+                infiniLmResolveVCacheDecodeLayoutTranspose();
+            if (transpose_fn == nullptr) {
+                throw std::runtime_error(
+                    "V-cache in-place transpose symbol is not available");
+            }
+            const int transpose_status = transpose_fn(
+                v_cache_layer->data(),
+                batch_size,
+                num_rank_v_heads_,
+                cache_pos,
+                v_dim_,
+                v_decode_layout_storage_len_,
+                v_decode_layout_page_size_);
+            if (transpose_status != 0) {
+                throw std::runtime_error(
+                    "V-cache in-place transpose failed");
+            }
+            v_decode_layout_ready_[layer_idx] = true;
+        }
+        if (v_decode_layout_ready_[layer_idx]) {
+            auto update_fn = infiniLmResolveVCacheDecodeLayoutUpdate();
+            if (update_fn == nullptr) {
+                throw std::runtime_error(
+                    "V-cache decode-layout update symbol is not available");
+            }
+            const int status = update_fn(
+                v_cache_layer->data(),
+                v->data(),
+                batch_size,
+                num_rank_v_heads_,
+                update_len,
+                v_dim_,
+                cache_pos,
+                v_decode_layout_num_pages_,
+                v_decode_layout_page_size_,
+                v->stride(0),
+                v->stride(1),
+                v->stride(2),
+                v->stride(3));
+            if (status != 0) {
+                throw std::runtime_error(
+                    "V-cache decode-layout update failed");
+            }
+        } else {
+            v_cache_layer
+                ->narrow({{2, cache_pos, update_len}})
+                ->copy_from(v);
+        }
+    } else {
+        v_cache_layer
+            ->narrow({{2, cache_pos, update_len}})
+            ->copy_from(v);
+    }
+
+    size_t return_len = result_len;
+    size_t pad_align = infiniLmKvPadAlign();
+    if (pad_align > 1 && update_len == 1) {
+        size_t padded_len = alignUp(result_len, pad_align);
+        if (padded_len <= cache_len_) {
+            return_len = padded_len;
+        }
+    }
+    if (infiniLmKvPadDebug() && return_len != result_len && layer_idx == 0) {
+        std::cerr << "INFINILM_KV_PAD real_len=" << result_len
+                  << " padded_len=" << return_len
+                  << " align=" << pad_align << std::endl;
+    }
+
+    auto k_total = k_cache_layer->narrow({{2, 0, return_len}});
+    // Before the first decode step V remains token-major for prefill. Once a
+    // layer has been transposed in place, decode reads it through the layout
+    // getter and this placeholder tensor is not dereferenced.
+    auto v_total =
+        v_decode_layout_enabled_ && v_decode_layout_ready_[layer_idx]
+        ? v
+        : v_cache_layer->narrow({{2, 0, return_len}});
 
     return {k_total, v_total};
+}
+
+bool
+StaticKVCache::has_v_decode_layout(size_t layer_idx) const {
+    return v_decode_layout_enabled_ &&
+        layer_idx < v_decode_layout_ready_.size() &&
+        v_decode_layout_ready_[layer_idx];
+}
+
+size_t StaticKVCache::v_decode_layout_page_size() const {
+    return v_decode_layout_page_size_;
+}
+
+infinicore::Tensor
+StaticKVCache::get_v_decode_layout(size_t layer_idx) const {
+    ASSERT(layer_idx < rank_num_layers_);
+    if (!has_v_decode_layout(layer_idx)) {
+        throw std::runtime_error("V-cache decode layout is not enabled");
+    }
+    auto layer = v_caches_->narrow({{0, layer_idx, 1}})->squeeze(0);
+    return layer->view(
+        {rank_batch_size_,
+         num_rank_v_heads_,
+         v_decode_layout_num_pages_,
+         v_dim_,
+         v_decode_layout_page_size_});
 }
 
 // ==========================

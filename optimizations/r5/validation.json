@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-26",
+  "hardware": "Iluvatar TG-V200",
+  "sdk": "COREX 4.3",
+  "source_manifest_sha256": "9c0016b096e475dd9412ad8cc21ad676789fe4942b2614846cc94b92931dec29",
+  "build": {
+    "model_translation_units": 15,
+    "support_libraries": 8,
+    "compiler_and_link_stages": 31,
+    "model_sha256": "7188ed4eb16595b7b8aa4f652217dd5df9633955058d9b7acced40bad8ce3231",
+    "full_infinicore_rebuild": false
+  },
+  "comparisons": [
+    {
+      "case": "mha_b4",
+      "requests": 3,
+      "tokens_identical": true,
+      "reference_ms": 615.2119199978188,
+      "rebuilt_ms": 613.0569530650973
+    },
+    {
+      "case": "mha_b16",
+      "requests": 3,
+      "tokens_identical": true,
+      "reference_ms": 8160.46318190638,
+      "rebuilt_ms": 8156.990731949918
+    },
+    {
+      "case": "second_b1",
+      "requests": 3,
+      "tokens_identical": true,
+      "reference_ms": 337.59182691574097,
+      "rebuilt_ms": 327.2366620367393
+    }
+  ],
+  "full_task_quality_test": false,
+  "timing_scope": "Smoke generation timing, not formal CPU-token-visible performance protocol",
+  "original_installation_changed": false
+}

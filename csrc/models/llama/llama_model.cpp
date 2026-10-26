@@ -1,9 +1,18 @@
+#include <infinicore/tensor.hpp>
+#include <optional>
+std::optional<infinicore::Tensor> iv_request_length_mirror(std::optional<infinicore::Tensor>,bool);
 #include "llama_model.hpp"
 #include "infinicore/nn/embedding.hpp"
 #include "infinicore/nn/rmsnorm.hpp"
 #include "infinicore/nn/rope.hpp"
 #include "infinicore/ops.hpp"
+#include "../profiler.hpp"
 #include <iostream>
+
+bool iv_chain_begin(bool);
+void iv_chain_observe(infinicore::Tensor);
+std::pair<infinicore::Tensor, infinicore::Tensor> iv_add_rms_fusion(
+    infinicore::Tensor, infinicore::Tensor, infinicore::Tensor, float);
 
 namespace infinilm::models::llama {
 
@@ -50,8 +59,36 @@ infinicore::Tensor LlamaModel::forward(const infinicore::Tensor &input_ids,
                                        std::optional<infinicore::Tensor> input_offsets,
                                        std::optional<infinicore::Tensor> block_tables,
                                        std::optional<infinicore::Tensor> slot_mapping) const {
+    const auto phase = infinilm::profile::phase_from_tensor(input_ids);
+
+    // Request-local mirror: static attention consumes CPU lengths; paged attention does not.
+    total_sequence_lengths = iv_request_length_mirror(total_sequence_lengths,
+        std::dynamic_pointer_cast<infinilm::cache::StaticKVCache>(kv_cache_) != nullptr);
+
     // 1. Embed tokens: input_ids -> [batch, seq_len, hidden_size]
-    auto hidden_states = embed_tokens_->forward(input_ids);
+    auto hidden_states = [&]() {
+        INFINILM_PROFILE_SCOPE(phase, -1, rank_info_.tp_rank, "model_embed_tokens", input_ids);
+        return embed_tokens_->forward(input_ids);
+    }();
+
+    const bool deferred = iv_chain_begin(rank_info_.tp_size == 1 && !layers_.empty() &&
+        hidden_states->dtype() == infinicore::DataType::BF16 &&
+        hidden_states->device().getType() == infinicore::Device::Type::ILUVATAR &&
+        std::dynamic_pointer_cast<infinilm::cache::StaticKVCache>(kv_cache_) != nullptr);
+    if (deferred) {
+        std::optional<infinicore::Tensor> pending_residual;
+        for (size_t i = 0; i < layers_.size(); ++i) {
+            auto next = layers_.at(i)->forward_deferred(hidden_states, position_ids, kv_cache_,
+                past_sequence_lengths, total_sequence_lengths, input_offsets, block_tables, slot_mapping,
+                pending_residual);
+            hidden_states = next.first;
+            pending_residual = next.second;
+        }
+        auto output = iv_add_rms_fusion(pending_residual.value(), hidden_states,
+            norm_->weight(), static_cast<float>(norm_->eps())).first;
+        iv_chain_observe(output);
+        return output;
+    }
 
     // 2. Process through all decoder layers
     size_t num_layers = layers_.size();
@@ -59,7 +96,12 @@ infinicore::Tensor LlamaModel::forward(const infinicore::Tensor &input_ids,
         hidden_states = layers_.at(i)->forward(hidden_states, position_ids, kv_cache_, past_sequence_lengths, total_sequence_lengths, input_offsets, block_tables, slot_mapping);
     }
 
-    return norm_->forward(hidden_states);
+    auto final_output = [&]() {
+        INFINILM_PROFILE_SCOPE(phase, -1, rank_info_.tp_rank, "model_final_norm", hidden_states);
+        return norm_->forward(hidden_states);
+    }();
+    iv_chain_observe(final_output);
+    return final_output;
 }
 
 void LlamaModel::reset_cache(const cache::CacheConfig *cache_config) {

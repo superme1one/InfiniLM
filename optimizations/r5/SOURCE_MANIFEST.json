@@ -1,0 +1,447 @@
+{
+  "schema": 1,
+  "runtime": "TG-V200 R5, non-M1",
+  "source_base": {
+    "InfiniLM": "d21a4f59ba599f0ca67ebe7025f008c4162fc0ee",
+    "InfiniCore": "5fdc80ddc2241fded2eb500665db9adce6d8cc63",
+    "InfiniOps": "4e55e6df614638f03b2bd8ae73c396639657a443"
+  },
+  "latest_evidence_date": "2026-10-26",
+  "files": [
+    {
+      "path": "csrc/utils.hpp",
+      "sha256": "1ffe7f5dfe8e4000d5fa6e99d13fdc3030d17bced4c1597c609e739d1af8f2fa",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/cache/base_cache.hpp",
+      "sha256": "eee28bc4ecd0c269e5fa7adee7000afdd4613d1f566e770d108ed4214095dc2a",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/cache/cache.hpp",
+      "sha256": "8b5cc6597c62ac8688ebf31bea7ad6c4560a7b092f236b9b24fbf2e2a12b5891",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/cache/kv_cache.cpp",
+      "sha256": "0fed4abe05f71ff667a359d48919346bb25d9cb79597f706db85091a341e13dd",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/cache/kv_cache.hpp",
+      "sha256": "d68879eeb6796da6e44e339086670a0107990f2c2072162d31e6848f93f6a264",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/engine/infer_engine.cpp",
+      "sha256": "a9ad89c674079ac7849ee18d740befa7e0959f89203cb5c0eeaad12682a9ab09",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/engine/infer_engine.hpp",
+      "sha256": "a8bbc39578c06456f1dc60aa79e37e70c5d782524ede502161bab6450f90f9a0",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/engine/rank_worker.cpp",
+      "sha256": "b149629302478984be028b142fc6b57d1e971a6aa8be090ba6431518cb4340e4",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/engine/rank_worker.hpp",
+      "sha256": "ebbc9026ef3b5bd0ad9b4223ec84b563dc1c1799c558cbb56e9a8193e7ea58f0",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/engine/distributed/communication_group.cpp",
+      "sha256": "6d4d7cef5cb5c54adc3dc80b10f754588bc7672f6dce3a56a8f12bafcdbcc4f4",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/engine/distributed/communication_group.hpp",
+      "sha256": "11d7fb78598eac7053bc627775db6a1c6a9acba2d64e8c9fe4faac54bd165ea1",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/engine/distributed/distributed.hpp",
+      "sha256": "a74eab1374bb07ef5daef6e8ed682dac13e1c2d43295dcf7cee91c041bf31060",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/engine/distributed/dist_config.cpp",
+      "sha256": "39e9fe68682b4a1cf5f4529ed4eef4fdd4fa07f5883f5cb4fd6fcaa3e5a74ee5",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/engine/distributed/dist_config.hpp",
+      "sha256": "e6487eb354c795ee41e3d9e1fae0e27cb19a57bc11c461b21914f9dceea62625",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/layers/fused_linear.cpp",
+      "sha256": "33266ea249be41ca9d8ee64ef67a6c61414903e3ef36793a7ea4b25bf65fd82d",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/layers/fused_linear.hpp",
+      "sha256": "a107125305acb5e8270bc5ad5d0806d2b63f70acdca08db8c757bd9e4410c3ed",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/models/infinilm_model.hpp",
+      "sha256": "42e8ef75b34a5a53ea34e12cf9e38a6ae38bd4836857b51cd900969d8eb8e8a5",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/models/model_factory.cpp",
+      "sha256": "7ff19450dafe410b1095ae038c75915c40caf7e9f1e8e24f981331b3fe73ac05",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/models/model_factory.hpp",
+      "sha256": "9bdac393b76ddc2586bbc5de84ea026a5cb7d020dcf6cdc82dbacb705e89e3f7",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/models/profiler.hpp",
+      "sha256": "af7e10223a564ab6d6a066e3fd03ce9fc7cb86d3613a41dc92f10d2c709ab8a3",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/models/debug_utils/hooks.cpp",
+      "sha256": "5efc185d027dcaa12f3d200f770f251e12a46e5b09990a02caa623d78ef5b129",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/models/debug_utils/hooks.hpp",
+      "sha256": "ad1f6f42c7315dad5f6a76f8437228a7532c55284c0319eedb0562bd87299f68",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/models/debug_utils/tensor_utils.hpp",
+      "sha256": "53f8ec9728ab45ee9ece8a5bee01e2dbcc33c9afe5c731272609a4bd9a73a244",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/models/llama/llama.hpp",
+      "sha256": "06202dac85a9a1df9b1440961336a2b8bae83ec77a8641680b664db87871b244",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/models/llama/llama_attention.cpp",
+      "sha256": "6e282b8e5a1ef0e7ed980d2aaa467c64729a28509d4194c295a7d63618f12b54",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/models/llama/llama_attention.hpp",
+      "sha256": "3e9286735243f016a22be7799cfd6ff90c8cf6095c6c3336059388cfcea99ff0",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/models/llama/llama_config.hpp",
+      "sha256": "b1310855be89d8c8ca13681bf874f1cc8c7c8de6efc0abb6da762862d1e918e6",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/models/llama/llama_decoder_layer.cpp",
+      "sha256": "d8fe0c4ae07561324e02c488d70d63b8f484686979f7223155732104798a496b",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/models/llama/llama_decoder_layer.hpp",
+      "sha256": "938325e6ed983722b0570e072ac559e4622891aca52c53d97636aa179ee19847",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/models/llama/llama_for_causal_lm.cpp",
+      "sha256": "4c97a9bdb5185df7860ffd983d32414f79ff6b241f5cd397ecd4772049112575",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/models/llama/llama_for_causal_lm.hpp",
+      "sha256": "d69cd9c4833002734377535285bcbfa640c319476506bbde4f3ac79d165fd56c",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/models/llama/llama_mlp.cpp",
+      "sha256": "1839166416eee30a7dbda53a46cefd68bca6fc12447a140d6af889f376404e92",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/models/llama/llama_mlp.hpp",
+      "sha256": "c8e774516cfdb5db66b08422111adbeee217d0e5723d0dfc844787580eae95ab",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/models/llama/llama_model.cpp",
+      "sha256": "8de76c8718b51d58b072f111f1221a7bdef70686d6ec49bec5854fc53e1febf0",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/models/llama/llama_model.hpp",
+      "sha256": "52aacf05091f8646c5f28b341cc91cdfaf10488785eb63a3f1fd9f4cfe579696",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/pybind11/bindings.cc",
+      "sha256": "db283bfa2d4007442419c6cfb0de5176055096bd0ac6302854e31aee4339542c",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/pybind11/cache/cache.hpp",
+      "sha256": "d1f07a7ca3be07fe5f3c7a3848c4ff56ef95c64b78f3751a89fdc5db38d3c901",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/pybind11/engine/engine.hpp",
+      "sha256": "15dab15a62d3cd853bdf6a3a85fc404a4ef244008f38b4e7748489e68bbb9cb9",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "csrc/pybind11/models/llama.hpp",
+      "sha256": "cf30a07efc00367467dd2460565a404c4c1ee41a951fea491de319e2e8cbae76",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/auto_config.py",
+      "sha256": "59126994aec67c2b1452d1bb9cb83e77f5162f1bf7ce9815158f86604c0f1c74",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/cache_utils.py",
+      "sha256": "f9b594d24fa1c7995dc9eb257a47720bf7b99b3a7aa9c12fbd6e178cb9e0718e",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/configuration_utils.py",
+      "sha256": "15a0f749e7edbf4d1886ab1294c3ec1577efebc61bebe02525786ed1f9c8a492",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/infer_engine.py",
+      "sha256": "6482fb377999f9677df9fad5df95251f00bf6a06500252cdacca74ad6eedeb83",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/modeling_utils.py",
+      "sha256": "49e994621d9b533e06e1318a352f270c0ac84c341bd81e5ce4dfa6b4c90b3c3b",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/__init__.py",
+      "sha256": "3f1ac64dffa2e1b948317d655e040e57e70609e3fdf8b4566af41633e692c6f8",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/cache/cache.py",
+      "sha256": "b8afc9b7a25710e6dc242babbb7ed76c75575b8000e06e240aa82d27d9229b2f",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/cache/__init__.py",
+      "sha256": "cf3e0259ee6ee9febcb03849b84161e26e011c4ac81af7a426ad6d7a34080b0e",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/distributed/dist_config.py",
+      "sha256": "a61f86e0ec649654ac623cbfbdf35b67f0078eb7f34ab563097c0d5b986a9d75",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/distributed/__init__.py",
+      "sha256": "dd2dade27cd52cfd3ac956c0c8c689ae8c9476d7aac6d1d477a2adaa840d5961",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/generation/utils.py",
+      "sha256": "fe8593d6f5ad0359699dcced2e735d4291b6ed019aa4993b52ca7ff961fb8a98",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/llm/cache_manager.py",
+      "sha256": "c4f298bda367d9178e0e22304adca5d44e464f3d013984f0a274b127d98d0205",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/llm/llm.py",
+      "sha256": "9b011b318c686fec8adc823068e315949c5c076b3efcc182f3a1fa7f395c01d2",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/llm/request.py",
+      "sha256": "2c26b26378d87d658cac1c395a643d765e0a15463e9c8911350674c231cebf14",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/llm/sampling_params.py",
+      "sha256": "d1b34b9dafe6b9ff02438841de3664106583cc15be61bd000f45b2e0313e4f84",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/llm/scheduler.py",
+      "sha256": "420d1844db5a7f651c4e1d0eb55d326371fb712ab6fb6a18b73c98a787ad44ec",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/llm/__init__.py",
+      "sha256": "595c1ceb4fb290e652bb37ef437c00ded48d569219efaf5ea7a898eef01dd330",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/models/__init__.py",
+      "sha256": "95321b2f815cf5cb7d7b1bc9f6c0dd7b5525539b97cfe7dc482e4e060c1b7a44",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/models/llama/configuration_llama.py",
+      "sha256": "33d3a7975506f841749f060f3fe12f0a5a64a8b332f80f0c6dc0124be5e9519d",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/models/llama/modeling_llama.py",
+      "sha256": "29fc54be96e0c875f4b8333c870804ce4735b6e5a8b59ae69c9037b211f8ef06",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/models/llama/__init__.py",
+      "sha256": "57fa86651dce1eadc1b2cf07afbf9e51fda23612666664e439dbc5f5262210c9",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "python/infinilm/server/inference_server.py",
+      "sha256": "953d8b8a3e8965a4a9d1cf9ba345765115333dfe98e1a9bff9453063012de409",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/decode_layout.hpp",
+      "sha256": "4f1c9cc5481a488e84cfce5860a634dc2fe99da5f382478b96714b14be54bcc2",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/decode_layout_guard.hpp",
+      "sha256": "4f9f484e281f5b40f2a9a1e6a74511b3e0143dfa48676e5ecbd2d54d32c277c2",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/add_contiguous_override.cu",
+      "sha256": "f8295e32370fa764f2a4d382361b3ac3435db653501fb920e0475c4b3fa79be9",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/swiglu_stride_override.cu",
+      "sha256": "f08df46b94e7cfef67e47db88bab4aa9f73ce5d6b657d36550deb5ab4a36a160",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/inference_candidate_memory_guard.hpp",
+      "sha256": "b81ab6804416d2bd90ca3c7bcdb5d2cf8cbf7145ab92b5a3f217f58415dd79f9",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/add_rms_fusion.cu",
+      "sha256": "357a12b4832ec9d896779cdb97f9bc3c9bb6d908443ae766a673fab35aa0640d",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/length_mirror.cpp",
+      "sha256": "1922d97bacebbd43645791df1a86e21686cbdf1e5775d0ecaf9d2331e70bd98d",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/chain_fusion_support.cpp",
+      "sha256": "ca7c4cc78949b852f158617a6bf5fdadef1b89f824ab69d4962ff083d3c9ebd3",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/last_logits_scope.cpp",
+      "sha256": "9ebe4379528dc5b237da4a4588efd2c417ec747fcd612b587d6120460496a92e",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/last_logits_scope.hpp",
+      "sha256": "b5e81f99db3459b532b8d71b1c4821991afd0d40b41f06472a9cbb28ceb84bb8",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/last_logits_short_scope.cpp",
+      "sha256": "0c7a249d2d3a69e8e8148ffbc370ab31f3907df25a66bf996d70c4d63f6a6367",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/short_logits_policy.hpp",
+      "sha256": "d813e9ce38499b9c584cea4961baa1cdc97b129426ecec75ada7ee6dca175ee3",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/softmax_row_bucket_override.cu",
+      "sha256": "992bd12d3b911014c389c7aef057b717eb8436e95f110b1acde87f28a74a650e",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/softmax_row_buckets.hpp",
+      "sha256": "aa4ea0efec31d0e2787f164c2690774d5aaf885b788cfc33653fc0059a25fb65",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/softmax_gate_contract.hpp",
+      "sha256": "0404a553a778456cba6816829a821cdff7594684cc024e2b1709df73eab25079",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/rope_pair.cu",
+      "sha256": "ab9af72480bfc6fd440ee4153f3dd7c0da841bbd877b31f6f726d3c8eac1d9cb",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/rope_pair_host.cpp",
+      "sha256": "c35c4974324eb2fca03fcab3b0c1e49336e34b119c42e6def0bba982fda3709c",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/rope_pair_launch.hpp",
+      "sha256": "68f41d605238ab81d96bb9c072f3981063c02af3e92239dd702957bd74736137",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/rope_pair_guard.hpp",
+      "sha256": "2e7a1a211596747c31aa7ae8ec1b3db9a3d3b8e2be3d49a741e4def72c92263b",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/rope_pair_model_api.cpp",
+      "sha256": "5d4e24410f069e344becb49ad13d3ddb7b1fe6f0b1afe7270a80f0025dec1384",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/rope_pair_model_switch.hpp",
+      "sha256": "a29035ac7b08a90a60def6b86878d8bf4d826adc1823bf34ca28f8aad359eed5",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/rope_backend_policy.hpp",
+      "sha256": "0e55b435ac820f75876cb10c4ab905c6c237e21530a319700fe599cc6f1dd5db",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/rope_backend_runtime.hpp",
+      "sha256": "db019a84926f25311c4b86e420d5f67c82e5b0aa81b347e899a15dae95956ca8",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/rope_nvidia.cu",
+      "sha256": "3aaca02b95e28fc2b7b1c5759c15ed10baa2c12aef8f5170bbe8b8e79cb3fba3",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/src/logging.map",
+      "sha256": "9d69119bd6d4a0fc1c7213f7cac90d56a413d213f6d71dc899b17b666880c5ef",
+      "origin": "Authenticated R5 runtime source"
+    },
+    {
+      "path": "optimizations/r5/include/infinicore/nn/rope.hpp",
+      "sha256": "3cbf365fb20b376f1943f3953e8c3eb0da627eafea267f59756b47ae9c6e8973",
+      "origin": "Authenticated R5 runtime source"
+    }
+  ]
+}

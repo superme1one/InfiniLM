@@ -9,6 +9,9 @@ This module provides:
 import time
 import uuid
 import logging
+import hashlib
+import json
+import os
 import threading
 from typing import List, Optional, Union, AsyncIterator
 from dataclasses import dataclass
@@ -32,6 +35,60 @@ from transformers import AutoTokenizer
 from tokenizers import decoders as _dec
 
 logger = logging.getLogger(__name__)
+
+
+# INFINILM_REQUEST_SIGNATURE_TRACE_PATCH
+INFINILM_REQUEST_SIGNATURE_TRACE_PATCH = True
+
+
+def _infinilm_request_signature_trace_enabled() -> bool:
+    value = os.getenv("INFINILM_REQUEST_SIGNATURE_TRACE", "")
+    return bool(value and value != "0")
+
+
+def _infinilm_trace_request_signature(
+    request_id: str,
+    prompt_token_ids,
+    sampling_params,
+) -> None:
+    if not _infinilm_request_signature_trace_enabled():
+        return
+    token_ids = [int(token) for token in (prompt_token_ids or [])]
+    sampling_contract = {
+        "max_tokens": getattr(sampling_params, "max_tokens", None),
+        "temperature": getattr(sampling_params, "temperature", None),
+        "top_p": getattr(sampling_params, "top_p", None),
+        "top_k": getattr(sampling_params, "top_k", None),
+        "stop": getattr(sampling_params, "stop", None),
+    }
+    signature_payload = {
+        "prompt_token_ids": token_ids,
+        "sampling": sampling_contract,
+    }
+    encoded = json.dumps(
+        signature_payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    ).encode("utf-8")
+    event = {
+        "timestamp_ns": time.time_ns(),
+        "monotonic_ns": time.monotonic_ns(),
+        "request_id": request_id,
+        "signature": hashlib.sha256(encoded).hexdigest(),
+        "prompt_tokens": len(token_ids),
+        "max_tokens": sampling_contract["max_tokens"],
+        "temperature": sampling_contract["temperature"],
+        "top_p": sampling_contract["top_p"],
+        "top_k": sampling_contract["top_k"],
+    }
+    print(
+        "INFINILM_REQUEST_SIGNATURE_TRACE "
+        + json.dumps(event, ensure_ascii=False, sort_keys=True, default=str),
+        flush=True,
+    )
+
 
 
 @dataclass
@@ -557,6 +614,10 @@ class AsyncLLMEngine:
         elif sampling_params.max_tokens is None:
             sampling_params = sampling_params.clone()
             sampling_params.max_tokens = self.config.max_tokens
+
+        _infinilm_trace_request_signature(
+            request_id, prompt_token_ids, sampling_params
+        )
 
         request = InferenceRequest(
             request_id=request_id,

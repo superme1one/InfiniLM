@@ -35,6 +35,7 @@ public:
      */
     LlamaMLP(const LlamaConfig &config,
              const infinicore::Device &device,
+             size_t layer_idx,
              engine::distributed::RankInfo rank_info = engine::distributed::RankInfo());
 
     /**
@@ -54,6 +55,7 @@ protected:
     INFINICORE_NN_MODULE(infinicore::nn::RowParallelLinear, down_proj);
 
     engine::distributed::RankInfo rank_info_;
+    size_t layer_idx_;
     size_t hidden_size_;
     size_t intermediate_size_;
     bool use_bias_;

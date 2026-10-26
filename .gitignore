@@ -21,6 +21,9 @@ __pycache__/
 
 # JSON
 *.json
+!optimizations/r5/SOURCE_MANIFEST.json
+!optimizations/r5/validation.json
+!optimizations/r5/cases.example.json
 
 #GGUF
 *.gguf
