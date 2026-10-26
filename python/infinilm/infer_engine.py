@@ -189,6 +189,7 @@ class GenerationConfig:
 
     eos_token_id: list[int] | None = None
     stop_on_eos: bool = True
+    stop_batch_on_eos: bool = False
 
 
 def _infer_position_id_axes(hf_config: dict) -> int:
@@ -595,6 +596,17 @@ class InferEngine(_infinilm.InferEngine):
         seq_len = initial_seqlen
         batch_size = initial_batch_size
 
+        batch_eos_enabled = (
+            generation_config.stop_batch_on_eos
+            and generation_config.stop_on_eos
+            and initial_batch_size > 1
+            and bool(eos_token_id)
+            and not self.enable_paged_attn
+            and not self.has_mamba_cache
+            and pixel_values is None
+        )
+        batch_finished = [False] * initial_batch_size if batch_eos_enabled else []
+
         if batch_size != 1 and generation_config.max_new_tokens is None:
             raise ValueError(
                 "When `batch_size > 1`, `max_new_tokens` must be specified."
@@ -801,6 +813,20 @@ class InferEngine(_infinilm.InferEngine):
             )
 
             output_ids.append(output_id)
+
+            if batch_eos_enabled:
+                host_tokens = output_id.to_numpy().tolist()
+                if len(host_tokens) != initial_batch_size:
+                    raise ValueError("Static batch output cardinality changed.")
+                # Remember first EOS even while a finished row keeps computing.
+                batch_finished = [
+                    done or token in eos_token_id
+                    for done, token in zip(batch_finished, host_tokens)
+                ]
+                if all(batch_finished):
+                    if _measure_and_log_time:
+                        time_measurements.append(time.perf_counter() - start_time)
+                    break
 
             if (
                 initial_batch_size == 1
